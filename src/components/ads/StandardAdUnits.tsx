@@ -1,23 +1,36 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { ExternalLink, Sparkles, TrendingUp, ShieldCheck, Compass, ArrowRight } from 'lucide-react';
 import { useAds, AD_CONFIGS } from '../../context/AdContext';
 import { AdUnitType } from '../../types/ads';
+
+export const SMARTLINK_URL = 'https://arwf.org/4/f97e329cd6ff1ff5914c922923374b52';
 
 interface AdProps {
   id?: string;
   className?: string;
 }
 
-// Helper container with ad format badge and click feedback
-const AdWrapper: React.FC<{
+// Reusable iframe ad renderer that executes the exact atOptions script in an isolated context
+interface IframeAdProps {
   type: AdUnitType;
-  width: string;
-  height: string;
-  children: React.ReactNode;
+  adKey: string;
+  width: number;
+  height: number;
+  title: string;
   className?: string;
-}> = ({ type, width, height, children, className = '' }) => {
+}
+
+const IframeAdRenderer: React.FC<IframeAdProps> = ({
+  type,
+  adKey,
+  width,
+  height,
+  title,
+  className = '',
+}) => {
   const { enabledFormats, recordImpression, recordClick, stats } = useAds();
   const [clickedFeedback, setClickedFeedback] = useState(false);
+  const [adLoaded, setAdLoaded] = useState(false);
 
   useEffect(() => {
     if (enabledFormats[type]) {
@@ -28,28 +41,85 @@ const AdWrapper: React.FC<{
   if (!enabledFormats[type]) return null;
 
   const config = AD_CONFIGS[type];
-  const unitStats = stats[type] || { impressions: 0, clicks: 0, ctr: 0, estimatedRevenue: 0 };
+  const unitStats = stats[type] || { impressions: 0, clicks: 0, ctr: 0 };
 
   const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
     recordClick(type);
     setClickedFeedback(true);
     setTimeout(() => setClickedFeedback(false), 1800);
   };
 
+  // Exact HTML payload executing the user's atOptions script
+  const iframeHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <base target="_blank">
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: ${width}px;
+      height: ${height}px;
+      overflow: hidden;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <script type="text/javascript">
+    atOptions = {
+      'key' : '${adKey}',
+      'format' : 'iframe',
+      'height' : ${height},
+      'width' : ${width},
+      'params' : {}
+    };
+  </script>
+  <script type="text/javascript" src="https://bicea.org/22/${adKey}"></script>
+</body>
+</html>`;
+
   return (
     <div
       onClick={handleClick}
-      className={`relative mx-auto bg-stone-100/90 border border-stone-300/80 rounded-xl overflow-hidden cursor-pointer shadow-xs hover:border-amber-600/70 transition-all group ${className}`}
-      style={{ width: '100%', maxWidth: width, minHeight: height }}
+      className={`relative mx-auto rounded-xl overflow-hidden border border-stone-300/80 bg-white shadow-xs group transition-all hover:border-amber-600/70 ${className}`}
+      style={{ width: `${width}px`, maxWidth: '100%', height: `${height}px` }}
     >
-      {/* Format Badge Indicator */}
-      <div className="absolute top-1 right-1.5 z-20 flex items-center gap-1.5 px-1.5 py-0.5 rounded bg-stone-900/80 text-[9px] font-mono font-medium text-stone-200">
+      {/* Ad Format Header Tag */}
+      <div className="absolute top-1 right-1.5 z-20 flex items-center gap-1 px-1.5 py-0.5 rounded bg-stone-900/85 text-[9px] font-mono font-medium text-stone-200 pointer-events-none">
         <span>{config.dimensions}</span>
         <span className="text-amber-400">· CTR {unitStats.ctr}%</span>
       </div>
 
-      {children}
+      {/* The Live Ad Network Iframe with user's atOptions code */}
+      <iframe
+        title={`Ad Unit ${config.dimensions} - ${title}`}
+        srcDoc={iframeHtml}
+        width={width}
+        height={height}
+        onLoad={() => setAdLoaded(true)}
+        className="w-full h-full border-0 block overflow-hidden z-10 relative"
+        sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+      />
+
+      {/* Fallback Display underneath if ad blocker intercepts the 3rd-party script */}
+      <div className="absolute inset-0 z-0 flex flex-col items-center justify-center p-3 text-center bg-gradient-to-br from-stone-50 via-white to-stone-100">
+        <div className="text-[10px] font-semibold text-amber-800 uppercase tracking-wider mb-0.5">
+          {config.name} ({config.dimensions})
+        </div>
+        <div className="text-xs font-bold text-stone-800 line-clamp-1">
+          {title}
+        </div>
+        <div className="text-[10px] text-stone-500 mt-1 flex items-center gap-1 font-mono">
+          <span>Key: {adKey.slice(0, 8)}...</span>
+        </div>
+      </div>
 
       {/* Click feedback toast overlay */}
       {clickedFeedback && (
@@ -64,200 +134,130 @@ const AdWrapper: React.FC<{
   );
 };
 
-// 1. Banner : 468x60 (Classic Banner)
+// 1. Banner : 468x60
+// Key: bb98a6b3e416d88c0114b2ab48e1744f
 export const Banner468x60: React.FC<AdProps> = ({ className = '' }) => {
   return (
-    <AdWrapper type="banner_468x60" width="468px" height="60px" className={className}>
-      <div className="h-[60px] px-3 py-1 flex items-center justify-between gap-3 bg-gradient-to-r from-stone-100 via-white to-stone-100">
-        <div className="flex items-center gap-2.5 truncate">
-          <div className="w-8 h-8 rounded bg-amber-700 text-white font-bold text-xs flex items-center justify-center shrink-0">
-            JR
-          </div>
-          <div className="truncate">
-            <div className="text-[10px] text-amber-900 font-semibold uppercase tracking-wider">
-              Japan Rail Pass 2026
-            </div>
-            <div className="text-xs font-bold text-stone-900 truncate">
-              Unlimited High-Speed Shinkansen Travel
-            </div>
-          </div>
-        </div>
-        <div className="shrink-0 flex items-center gap-1 text-[11px] font-bold text-stone-900 bg-amber-400 hover:bg-amber-300 px-2.5 py-1 rounded shadow-2xs">
-          <span>Book Pass</span>
-          <ExternalLink className="w-3 h-3" />
-        </div>
-      </div>
-    </AdWrapper>
+    <div className="flex justify-center w-full overflow-x-auto py-1">
+      <IframeAdRenderer
+        type="banner_468x60"
+        adKey="bb98a6b3e416d88c0114b2ab48e1744f"
+        width={468}
+        height={60}
+        title="Japan Rail & High-Speed Transit 468x60"
+        className={className}
+      />
+    </div>
   );
 };
 
 // 2. 300x250 (Medium Rectangle)
+// Key: 8a39e28fb8bb4b737db2af8278d84752
 export const Banner300x250: React.FC<AdProps> = ({ className = '' }) => {
   return (
-    <AdWrapper type="banner_300x250" width="300px" height="250px" className={className}>
-      <div className="h-[250px] p-4 flex flex-col justify-between bg-white">
-        <div className="space-y-2">
-          <div className="text-[10px] font-semibold text-amber-800 uppercase tracking-wider">
-            Sponsored Retreat
-          </div>
-          <h4 className="text-sm font-bold text-stone-900 font-display leading-snug">
-            Kyoto Secluded Machiya Villas
-          </h4>
-          <p className="text-xs text-stone-600 leading-relaxed line-clamp-3">
-            Private 120-year-old wooden townhouses featuring cedar aromatic bathtubs, private moss verandas, and daily in-villa tea ceremonies.
-          </p>
-          <div className="text-[11px] text-stone-500 flex items-center gap-1">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" />
-            <span>Verified Heritage Quality</span>
-          </div>
-        </div>
-
-        <div className="pt-2 border-t border-stone-100 flex items-center justify-between">
-          <div>
-            <span className="text-[10px] text-stone-400 block">From</span>
-            <span className="text-sm font-bold text-stone-900 font-display">$190/night</span>
-          </div>
-          <div className="px-3 py-1.5 text-xs font-bold text-white bg-stone-900 rounded-lg flex items-center gap-1">
-            <span>Check Dates</span>
-            <ExternalLink className="w-3 h-3 text-stone-300" />
-          </div>
-        </div>
-      </div>
-    </AdWrapper>
+    <div className="flex justify-center w-full py-1">
+      <IframeAdRenderer
+        type="banner_300x250"
+        adKey="8a39e28fb8bb4b737db2af8278d84752"
+        width={300}
+        height={250}
+        title="Curated Villa Stays & Retreats 300x250"
+        className={className}
+      />
+    </div>
   );
 };
 
-// 3. 160x300 (Half Skyscraper / Vertical Mini Banner)
+// 3. 160x300 (Half Skyscraper)
+// Key: fdb96a52d95db7c2726b6cac50dc072e
 export const Banner160x300: React.FC<AdProps> = ({ className = '' }) => {
   return (
-    <AdWrapper type="banner_160x300" width="160px" height="300px" className={className}>
-      <div className="h-[300px] p-3 flex flex-col justify-between bg-stone-50 text-center">
-        <div className="space-y-2">
-          <span className="text-[9px] font-semibold text-amber-800 uppercase tracking-wider block">
-            Field Gear
-          </span>
-          <div className="w-12 h-12 bg-stone-900 text-amber-400 rounded-full mx-auto flex items-center justify-center font-bold text-sm">
-            <Compass className="w-6 h-6" />
-          </div>
-          <h4 className="text-xs font-bold text-stone-900 font-display leading-tight">
-            Waxed Canvas Field Packs
-          </h4>
-          <p className="text-[11px] text-stone-600 leading-tight">
-            Waterproof hiking rucksacks with lifetime guarantee.
-          </p>
-        </div>
-
-        <div className="space-y-1 pt-2 border-t border-stone-200">
-          <div className="text-[10px] text-emerald-800 font-bold">20% Off Spring</div>
-          <div className="w-full py-1 text-[11px] font-bold text-stone-900 bg-amber-400 rounded flex items-center justify-center gap-1">
-            <span>Shop Now</span>
-          </div>
-        </div>
-      </div>
-    </AdWrapper>
+    <div className="flex justify-center w-full py-1">
+      <IframeAdRenderer
+        type="banner_160x300"
+        adKey="fdb96a52d95db7c2726b6cac50dc072e"
+        width={160}
+        height={300}
+        title="Field Expedition Rucksacks 160x300"
+        className={className}
+      />
+    </div>
   );
 };
 
 // 4. 160x600 (Wide Skyscraper)
+// Key: bedbbf316e2fa58d893014257db98f3e
 export const Banner160x600: React.FC<AdProps> = ({ className = '' }) => {
   return (
-    <AdWrapper type="banner_160x600" width="160px" height="600px" className={className}>
-      <div className="h-[600px] p-3.5 flex flex-col justify-between bg-white text-center">
-        <div className="space-y-4">
-          <div className="text-[9px] font-semibold text-amber-800 uppercase tracking-widest pb-1 border-b border-stone-100">
-            Slow Travel Partner
-          </div>
-
-          <div className="space-y-1">
-            <span className="text-xs font-mono font-bold text-stone-800">EUROPASS</span>
-            <h4 className="text-sm font-bold text-stone-900 font-display leading-tight">
-              Grand Alpine & Coastal Rail Pass
-            </h4>
-          </div>
-
-          <p className="text-[11px] text-stone-600 leading-relaxed text-left">
-            Ride through 33 countries with 1 flexible ticket. High-speed panoramic trains through the Swiss Alps and Mediterranean coastlines.
-          </p>
-
-          <div className="p-2.5 bg-amber-50 rounded-lg border border-amber-200 text-[10px] text-amber-900 text-left space-y-1">
-            <div className="font-bold">Includes:</div>
-            <div>· Unlimited train days</div>
-            <div>· Free seat reservations</div>
-            <div>· Ferry discounts</div>
-          </div>
-        </div>
-
-        <div className="space-y-2 pt-3 border-t border-stone-200">
-          <div className="text-xs font-bold text-stone-900 font-display">
-            From $245
-          </div>
-          <div className="w-full py-2 text-xs font-bold text-stone-950 bg-amber-400 hover:bg-amber-300 rounded-lg shadow-2xs flex items-center justify-center gap-1">
-            <span>Get Pass</span>
-            <ExternalLink className="w-3 h-3" />
-          </div>
-        </div>
-      </div>
-    </AdWrapper>
+    <div className="flex justify-center w-full py-1">
+      <IframeAdRenderer
+        type="banner_160x600"
+        adKey="bedbbf316e2fa58d893014257db98f3e"
+        width={160}
+        height={600}
+        title="Grand European Rail Pass 160x600"
+        className={className}
+      />
+    </div>
   );
 };
 
 // 5. 320x50 (Mobile Leaderboard)
+// Key: 6ebe642f2dc993110599930f03786c48
 export const Banner320x50: React.FC<AdProps> = ({ className = '' }) => {
   return (
-    <AdWrapper type="banner_320x50" width="320px" height="50px" className={className}>
-      <div className="h-[50px] px-3 py-1 flex items-center justify-between gap-2 bg-gradient-to-r from-stone-900 to-stone-800 text-white">
-        <div className="truncate">
-          <div className="text-[9px] text-amber-400 font-semibold uppercase tracking-wider">
-            Travel eSIM 5G
-          </div>
-          <div className="text-xs font-bold truncate">
-            Unlimited Data in 160+ Countries
-          </div>
-        </div>
-        <div className="shrink-0 text-[10px] font-bold bg-amber-400 text-stone-950 px-2 py-1 rounded">
-          From $4.50
-        </div>
-      </div>
-    </AdWrapper>
+    <div className="flex justify-center w-full py-1">
+      <IframeAdRenderer
+        type="banner_320x50"
+        adKey="6ebe642f2dc993110599930f03786c48"
+        width={320}
+        height={50}
+        title="Worldwide Travel eSIM 320x50"
+        className={className}
+      />
+    </div>
   );
 };
 
 // 6. 728x90 (Standard Leaderboard)
+// Key: bd821831aabb1983f5b0b6d312025a59
 export const Banner728x90: React.FC<AdProps> = ({ className = '' }) => {
   return (
-    <AdWrapper type="banner_728x90" width="728px" height="90px" className={className}>
-      <div className="h-[90px] px-5 py-2.5 flex items-center justify-between gap-4 bg-gradient-to-r from-stone-50 via-white to-stone-50">
-        <div className="space-y-1 max-w-lg truncate">
-          <div className="flex items-center gap-2 text-[10px] font-semibold text-amber-800 uppercase tracking-wider">
-            <span>Official Sponsor</span>
-            <span aria-hidden="true">·</span>
-            <span>World Nomads Ethical Travel Insurance</span>
-          </div>
-          <div className="text-sm font-bold text-stone-900 font-display truncate">
-            Explore with total peace of mind: High-altitude trekking & camera gear covered
-          </div>
-          <div className="text-[11px] text-stone-500 truncate">
-            Trusted by over 2.4 million independent and slow travelers across 130+ countries worldwide.
-          </div>
-        </div>
-
-        <div className="shrink-0 flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-stone-900 hover:bg-stone-800 rounded-lg shadow-sm">
-          <span>Get Instant Quote</span>
-          <ExternalLink className="w-3.5 h-3.5" />
-        </div>
-      </div>
-    </AdWrapper>
+    <div className="flex justify-center w-full overflow-x-auto py-1">
+      <IframeAdRenderer
+        type="banner_728x90"
+        adKey="bd821831aabb1983f5b0b6d312025a59"
+        width={728}
+        height={90}
+        title="World Nomads Ethical Travel Insurance 728x90"
+        className={className}
+      />
+    </div>
   );
 };
 
-// 7. Native Banner (Editorial Multi-item Sponsored Widget)
+// 7. Native Banner:
+// <script async="async" data-cfasync="false" src="https://bicea.org/21/8f0f4574024177ba8db8a68cca37904a"></script>
+// <div id="container-8f0f4574024177ba8db8a68cca37904a"></div>
 export const NativeBanner: React.FC<AdProps> = ({ className = '' }) => {
   const { enabledFormats, recordImpression, recordClick, stats } = useAds();
   const [clickedFeedback, setClickedFeedback] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (enabledFormats.native_banner) {
       recordImpression('native_banner');
+
+      // Inject the user's native banner script tag dynamically
+      const scriptId = 'native-ad-script-8f0f';
+      if (!document.getElementById(scriptId)) {
+        const script = document.createElement('script');
+        script.id = scriptId;
+        script.async = true;
+        script.setAttribute('data-cfasync', 'false');
+        script.src = 'https://bicea.org/21/8f0f4574024177ba8db8a68cca37904a';
+        document.body.appendChild(script);
+      }
     }
   }, [enabledFormats.native_banner]);
 
@@ -310,7 +310,10 @@ export const NativeBanner: React.FC<AdProps> = ({ className = '' }) => {
         </span>
       </div>
 
-      {/* 3-column native grid */}
+      {/* Target Container required by user's native ad script */}
+      <div id="container-8f0f4574024177ba8db8a68cca37904a" ref={containerRef} className="w-full min-h-[10px]" />
+
+      {/* 3-column native grid (renders alongside or as fallback) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {nativeItems.map((item, idx) => (
           <div
@@ -344,7 +347,8 @@ export const NativeBanner: React.FC<AdProps> = ({ className = '' }) => {
   );
 };
 
-// 8. Smartlink (Contextual Dynamic Offer Link)
+// 8. Smartlink:
+// URL: https://arwf.org/4/f97e329cd6ff1ff5914c922923374b52
 export const Smartlink: React.FC<{
   anchorText?: string;
   category?: string;
@@ -355,7 +359,6 @@ export const Smartlink: React.FC<{
   className = '',
 }) => {
   const { enabledFormats, recordImpression, recordClick, stats } = useAds();
-  const [clicked, setClicked] = useState(false);
 
   useEffect(() => {
     if (enabledFormats.smartlink) {
@@ -370,12 +373,14 @@ export const Smartlink: React.FC<{
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     recordClick('smartlink');
-    setClicked(true);
-    setTimeout(() => setClicked(false), 2000);
+    window.open(SMARTLINK_URL, '_blank', 'noopener,noreferrer');
   };
 
   return (
-    <div
+    <a
+      href={SMARTLINK_URL}
+      target="_blank"
+      rel="noopener noreferrer"
       onClick={handleClick}
       className={`inline-flex items-center gap-2 p-2.5 bg-amber-50 hover:bg-amber-100/90 border border-amber-200 rounded-xl cursor-pointer transition-colors shadow-2xs group ${className}`}
     >
@@ -384,16 +389,16 @@ export const Smartlink: React.FC<{
       </div>
       <div className="text-left">
         <div className="text-[9px] font-semibold text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
-          <span>Smartlink Offer</span>
+          <span>Smartlink</span>
           <span>·</span>
           <span>{category}</span>
           <span className="text-stone-500 font-mono">(CTR {unitStats.ctr}%)</span>
         </div>
         <div className="text-xs font-bold text-stone-900 group-hover:text-amber-900 transition-colors flex items-center gap-1">
-          <span>{clicked ? 'Smartlink Redirecting to Best Regional Provider...' : anchorText}</span>
+          <span>{anchorText}</span>
           <ArrowRight className="w-3.5 h-3.5 text-amber-700 group-hover:translate-x-0.5 transition-transform" />
         </div>
       </div>
-    </div>
+    </a>
   );
 };

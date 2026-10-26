@@ -21,6 +21,7 @@ export const SocialBarTop: React.FC = () => {
     e.stopPropagation();
     recordClick('social_bar_top');
     setClicked(true);
+    window.open('https://arwf.org/4/f97e329cd6ff1ff5914c922923374b52', '_blank', 'noopener,noreferrer');
     setTimeout(() => setClicked(false), 2000);
   };
 

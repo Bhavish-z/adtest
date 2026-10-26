@@ -17,6 +17,11 @@ import {
 import { Tour, Review } from '../types/travel';
 import { InteractiveMap } from '../components/InteractiveMap';
 import { AdPlacement } from '../components/AdPlacement';
+import { 
+  Banner160x300, 
+  Banner728x90, 
+  Smartlink 
+} from '../components/ads/StandardAdUnits';
 
 interface ToursPageProps {
   tours: Tour[];
@@ -261,37 +266,52 @@ export const ToursPage: React.FC<ToursPageProps> = ({
             </p>
           </div>
 
-          <div className="h-64 rounded-2xl overflow-hidden border border-stone-200">
-            <InteractiveMap
-              pois={[
-                {
-                  id: 'meeting-pt',
-                  name: activeTour.meetingPoint,
-                  category: 'Tour Meeting Point',
-                  destination: activeTour.destination,
-                  lat: activeTour.meetingCoords[0],
-                  lng: activeTour.meetingCoords[1],
-                  description: activeTour.meetingAddress,
-                  localTip: 'Arrive 10 minutes prior to departure.',
-                  image: activeTour.coverImage,
-                },
-              ]}
-              center={activeTour.meetingCoords}
-              zoom={15}
-              height="256px"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+            <div className="md:col-span-3 h-64 rounded-2xl overflow-hidden border border-stone-200">
+              <InteractiveMap
+                pois={[
+                  {
+                    id: 'meeting-pt',
+                    name: activeTour.meetingPoint,
+                    category: 'Tour Meeting Point',
+                    destination: activeTour.destination,
+                    lat: activeTour.meetingCoords[0],
+                    lng: activeTour.meetingCoords[1],
+                    description: activeTour.meetingAddress,
+                    localTip: 'Arrive 10 minutes prior to departure.',
+                    image: activeTour.coverImage,
+                  },
+                ]}
+                center={activeTour.meetingCoords}
+                zoom={15}
+                height="256px"
+              />
+            </div>
+
+            {/* Ad Unit Showcase: 160x300 Half Skyscraper */}
+            <div className="hidden md:flex justify-center">
+              <Banner160x300 />
+            </div>
           </div>
         </section>
 
-        {/* Travel Protection / Equipment Sponsor Banner */}
-        <AdPlacement
-          format="leaderboard"
-          partnerName="World Nomads Ethical Traveler Cover"
-          category="Curated Insurance Partner"
-          destinationTag={`${activeTour.destination} & Field Wandering`}
-          tagline="Comprehensive small-group travel coverage including sudden trip cancellations, mountain trail rescue, and camera gear protection."
-          ctaText="Explore Travel Protection"
-        />
+        {/* Travel Protection / Equipment Sponsor Banner & Smartlink */}
+        <div className="space-y-3">
+          <div className="flex justify-center">
+            <Smartlink
+              anchorText={`Get 24/7 Medical & Gear Protection for ${activeTour.destination}`}
+              category="Travel Protection"
+            />
+          </div>
+          <AdPlacement
+            format="leaderboard"
+            partnerName="World Nomads Ethical Traveler Cover"
+            category="Curated Insurance Partner"
+            destinationTag={`${activeTour.destination} & Field Wandering`}
+            tagline="Comprehensive small-group travel coverage including sudden trip cancellations, mountain trail rescue, and camera gear protection."
+            ctaText="Explore Travel Protection"
+          />
+        </div>
 
         {/* Verified Reviews Section */}
         <section className="space-y-6 pt-4 border-t border-stone-200">
@@ -367,6 +387,11 @@ export const ToursPage: React.FC<ToursPageProps> = ({
         <p className="text-sm text-stone-600 leading-relaxed">
           Crafted for curious travelers who value depth over checklists. Capped at 8 to 10 guests with guaranteed departure dates and direct artisan compensation.
         </p>
+      </div>
+
+      {/* Ad Unit Showcase: 728x90 Standard Leaderboard */}
+      <div className="hidden sm:block">
+        <Banner728x90 />
       </div>
 
       {/* Filter and Search Bar */}

@@ -15,6 +15,7 @@ import {
 import { MapPOI, Tour, LocalGuide } from '../types/travel';
 import { InteractiveMap } from '../components/InteractiveMap';
 import { AdPlacement } from '../components/AdPlacement';
+import { Banner300x250, Smartlink } from '../components/ads/StandardAdUnits';
 
 interface MapPageProps {
   pois: MapPOI[];
@@ -345,6 +346,11 @@ export const MapPage: React.FC<MapPageProps> = ({
                 );
               })}
             </div>
+          </div>
+
+          {/* Ad Unit Showcase: 300x250 Medium Rectangle */}
+          <div className="flex justify-center">
+            <Banner300x250 />
           </div>
 
           {/* Sidebar Sponsored Partner Placement */}

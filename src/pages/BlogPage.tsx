@@ -14,6 +14,11 @@ import {
 } from 'lucide-react';
 import { BlogPost, Tour } from '../types/travel';
 import { AdPlacement } from '../components/AdPlacement';
+import { 
+  Banner468x60, 
+  NativeBanner, 
+  Smartlink 
+} from '../components/ads/StandardAdUnits';
 
 interface BlogPageProps {
   posts: BlogPost[];
@@ -156,7 +161,16 @@ export const BlogPage: React.FC<BlogPageProps> = ({
           )}
 
           {/* In-Article Editorial Placement */}
-          <div className="my-6">
+          <div className="my-6 space-y-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-2 border-y border-stone-200">
+              <Banner468x60 />
+              <div className="shrink-0">
+                <Smartlink
+                  anchorText="Browse Slow Living Literary Stays & Residencies"
+                  category="Writer Residencies"
+                />
+              </div>
+            </div>
             <AdPlacement
               format="leaderboard"
               partnerName="Caminho Sol: Slow Travel Journals & Ink"
@@ -423,6 +437,11 @@ export const BlogPage: React.FC<BlogPageProps> = ({
           tagline="An international atlas connecting travelers with heirloom grain farmers, raw milk cheesemakers, and biodynamic winemakers."
           ctaText="Explore Food Atlas"
         />
+      </div>
+
+      {/* Ad Unit Showcase: Native Recommendation Banner */}
+      <div className="pt-4">
+        <NativeBanner />
       </div>
     </div>
   );

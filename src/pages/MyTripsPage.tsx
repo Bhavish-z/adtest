@@ -15,6 +15,11 @@ import {
 } from 'lucide-react';
 import { Booking, Tour } from '../types/travel';
 import { AdPlacement } from '../components/AdPlacement';
+import { 
+  Banner728x90, 
+  Banner320x50, 
+  Smartlink 
+} from '../components/ads/StandardAdUnits';
 
 interface MyTripsPageProps {
   bookings: Booking[];
@@ -287,6 +292,22 @@ export const MyTripsPage: React.FC<MyTripsPageProps> = ({
           })}
         </div>
       )}
+
+      {/* Ad Unit Showcase: 728x90 Leaderboard & 320x50 Mobile */}
+      <div className="space-y-3 pt-4 border-t border-stone-200">
+        <div className="flex justify-center">
+          <Smartlink
+            anchorText="Delayed Flight or Rail Connection? Claim Up to €600 Under EU Regulation 261"
+            category="Traveler Compensation"
+          />
+        </div>
+        <div className="hidden sm:block">
+          <Banner728x90 />
+        </div>
+        <div className="sm:hidden flex justify-center">
+          <Banner320x50 />
+        </div>
+      </div>
 
       {/* Traveler Logistics & Courier Partner Banner */}
       <AdPlacement

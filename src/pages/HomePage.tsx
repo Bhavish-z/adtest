@@ -15,6 +15,12 @@ import {
 import { Tour, LocalGuide, BlogPost, Review, MapPOI } from '../types/travel';
 import { InteractiveMap } from '../components/InteractiveMap';
 import { AdPlacement } from '../components/AdPlacement';
+import { 
+  Banner728x90, 
+  Banner320x50, 
+  NativeBanner, 
+  Smartlink 
+} from '../components/ads/StandardAdUnits';
 
 interface HomePageProps {
   tours: Tour[];
@@ -155,6 +161,16 @@ export const HomePage: React.FC<HomePageProps> = ({
             <div className="text-xs font-semibold text-stone-800">Direct Fair-Pay Guarantee</div>
             <div className="text-xs text-stone-500">Artisans & family workshops receive full dignified rates.</div>
           </div>
+        </div>
+      </section>
+
+      {/* Ad Unit Showcase: 728x90 Desktop Leaderboard + 320x50 Mobile Leaderboard */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-3">
+        <div className="hidden sm:block">
+          <Banner728x90 />
+        </div>
+        <div className="sm:hidden flex justify-center">
+          <Banner320x50 />
         </div>
       </section>
 
@@ -538,6 +554,11 @@ export const HomePage: React.FC<HomePageProps> = ({
             </article>
           ))}
         </div>
+      </section>
+
+      {/* Ad Unit Showcase: Native Recommendation Banner */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <NativeBanner />
       </section>
 
       {/* 7. Verified Reviews & Testimonials */}

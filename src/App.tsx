@@ -9,6 +9,10 @@ import { BlogPage } from './pages/BlogPage';
 import { MyTripsPage } from './pages/MyTripsPage';
 import { BookingModal } from './components/BookingModal';
 import { ReviewModal } from './components/ReviewModal';
+import { AdProvider } from './context/AdContext';
+import { SocialBarTop } from './components/ads/SocialBarTop';
+import { PopunderTop } from './components/ads/PopunderTop';
+import { AdPerformanceLab } from './components/ads/AdPerformanceLab';
 import { 
   INITIAL_TOURS, 
   INITIAL_GUIDES, 
@@ -108,13 +112,20 @@ export default function App() {
   const activeConfirmedBookingsCount = bookings.filter((b) => b.status === 'confirmed').length;
 
   return (
-    <div className="min-h-screen flex flex-col bg-stone-50 text-stone-900 font-sans selection:bg-amber-200 selection:text-stone-900">
-      {/* Strict Top Bar Contract Navbar */}
-      <Navbar
-        currentPage={currentPage}
-        onNavigate={handleNavigate}
-        bookingCount={activeConfirmedBookingsCount}
-      />
+    <AdProvider>
+      <div className="min-h-screen flex flex-col bg-stone-50 text-stone-900 font-sans selection:bg-amber-200 selection:text-stone-900">
+        {/* Social BarTOP Unit */}
+        <SocialBarTop />
+
+        {/* PopunderTOP Simulated Window */}
+        <PopunderTop />
+
+        {/* Strict Top Bar Contract Navbar */}
+        <Navbar
+          currentPage={currentPage}
+          onNavigate={handleNavigate}
+          bookingCount={activeConfirmedBookingsCount}
+        />
 
       {/* Main Pages Router */}
       <main className="flex-1">
@@ -208,6 +219,10 @@ export default function App() {
 
       {/* Quiet Editorial Footer */}
       <Footer onNavigate={handleNavigate} />
+
+      {/* Floating Ad Performance Lab Inspector */}
+      <AdPerformanceLab />
     </div>
-  );
+  </AdProvider>
+);
 }

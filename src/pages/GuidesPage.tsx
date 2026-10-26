@@ -15,6 +15,11 @@ import {
 import { LocalGuide, Tour, MapPOI } from '../types/travel';
 import { InteractiveMap } from '../components/InteractiveMap';
 import { AdPlacement } from '../components/AdPlacement';
+import { 
+  Banner468x60, 
+  Banner160x600, 
+  Smartlink 
+} from '../components/ads/StandardAdUnits';
 
 interface GuidesPageProps {
   guides: LocalGuide[];
@@ -205,6 +210,17 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({
           />
         </div>
 
+        {/* Ad Unit Showcase: 468x60 Banner & Smartlink */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-2 border-y border-stone-200/80">
+          <Banner468x60 />
+          <div className="shrink-0">
+            <Smartlink 
+              anchorText={`Compare ${activeGuide.destination} Scenic Passes`}
+              category="Transit Passes"
+            />
+          </div>
+        </div>
+
         {/* Suggested Day Itinerary */}
         <section className="space-y-6 pt-4 border-t border-stone-200">
           <div>
@@ -348,8 +364,9 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({
         ctaText="Plan Rail Route"
       />
 
-      {/* Guides Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Guides Grid with 160x600 Wide Skyscraper Flank */}
+      <div className="flex flex-col xl:flex-row items-start gap-6">
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredGuides.map((guide) => (
           <div
             key={guide.id}
@@ -401,6 +418,12 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({
             </div>
           </div>
         ))}
+        </div>
+
+        {/* Ad Unit Showcase: 160x600 Wide Skyscraper */}
+        <div className="hidden xl:block shrink-0 sticky top-24 space-y-2">
+          <Banner160x600 />
+        </div>
       </div>
     </div>
   );

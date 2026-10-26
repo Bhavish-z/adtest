@@ -1,0 +1,6 @@
+{
+  "name": "Wanderlore: Local Guides & Curated Tours",
+  "description": "Curated local travel guides, interactive maps, verified traveler reviews, field notes journal, and integrated small-group tour booking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
